@@ -3,7 +3,7 @@
 # Holmusk Challenge
 # 2015.1.24
 # Bhargav.V
-# Version 5
+# Python Version 3.5
 # Scheduled to run weekly
 ##########################################################
 
