@@ -2,10 +2,6 @@
 
 The project aims to track price changes for all products in the inventory of www.Redmart.com on a weekly basis. Other key product information such as category, brand, manufacturer, vendor and image are stored in a local database.
 
-## Code Example
-
-Show what the library does as concisely as possible, developers should be able to figure out **how** your project solves their problem by looking at the code example. Make sure the API you are showing off is obvious, and that your code is short and concise.
-
 ## Motivation
 
 A selfish motive for a personal cause :)
