@@ -16,8 +16,15 @@ today_time = datetime.datetime.today()
 
 #---------------------------------------Scrape Product info from internal API---------------------------------------
 
+#Generating random consumer id & session id to avoid blocking by bots
+from random import randint
+from random import choice
+from string import ascii_lowercase
+
+SessionID = ''.join(choice(ascii_lowercase) for i in range(4))
+ConsumerID = randint(1000, 9999)
 #url links to product info of all redmart products
-url = 'https://ssapi.redmart.com/v1.5.6/catalog/search?q=*&pageSize=4000&sort=1&session=abcd&apiConsumerId=1234'
+url = 'https://ssapi.redmart.com/v1.5.6/catalog/search?q=*&pageSize=4000&sort=1&session=' + SessionID + '&apiConsumerId=' + str(ConsumerID)
 urlRes = ur.urlopen(url)
 soup = BeautifulSoup(urlRes, "html.parser")
 soupChr = str(soup)
@@ -61,7 +68,17 @@ for i in range(len(chk)):
 #Converting to a dataframe
 #Please change db_path to local path used
 import pandas as pd
-df = pd.DataFrame(dataForOneSC, columns=['Title','SKU','Categories','brand','mfr','vendor','ctry_origin','Price','ImageLink', 'Run_date'])
+df = pd.DataFrame(dataForOneSC, columns=[
+    'Title',
+    'SKU',
+    'Categories',
+    'brand',
+    'mfr',
+    'vendor',
+    'ctry_origin',
+    'Price',
+    'ImageLink',
+    'Run_date'])
 
 #Storing the data in a database
 import sqlite3
@@ -77,9 +94,18 @@ conn.commit()
 
 #Creating a table which holds historical data for all the weeks
 c.execute('''
-   CREATE TABLE IF NOT EXISTS RM_WEEKLY_DATA(ROW_NUM INTEGER, TITLE TEXT, SKU TEXT,
-                      CATEGORIES TEXT, BRAND TEXT, MFR TEXT , VENDOR TEXT,
-                      CTRY_ORIGIN TEXT, PRICE REAL , IMAGELINK TEXT, RUN_DATE TIMESTAMP)
+   CREATE TABLE IF NOT EXISTS RM_WEEKLY_DATA(
+   ROW_NUM INTEGER,
+   TITLE TEXT,
+   SKU TEXT,
+   CATEGORIES TEXT,
+   BRAND TEXT,
+   MFR TEXT ,
+   VENDOR TEXT,
+   CTRY_ORIGIN TEXT,
+   PRICE REAL ,
+   IMAGELINK TEXT,
+   RUN_DATE TIMESTAMP)
           ''')
 conn.commit()
 
@@ -102,12 +128,13 @@ c.execute('''
     FROM RM_WEEKLY_DATA A
     LEFT JOIN
     (
-    SELECT A.ROW_NUM,A.RUN_DATE,
-    COUNT(DISTINCT B.RUN_DATE) RANK
+    SELECT A.ROW_NUM,
+           A.RUN_DATE,
+           COUNT(DISTINCT B.RUN_DATE) RANK
     FROM RM_WEEKLY_DATA A, RM_WEEKLY_DATA B
     WHERE A.RUN_DATE < B.RUN_DATE
       OR
-      (A.RUN_DATE=B.RUN_DATE AND A.ROW_NUM = B.ROW_NUM)
+          (A.RUN_DATE=B.RUN_DATE AND A.ROW_NUM = B.ROW_NUM)
     GROUP BY  A.ROW_NUM, A.RUN_DATE
     ORDER BY A.RUN_DATE DESC, RANK DESC
 	)B
@@ -124,7 +151,12 @@ conn.commit()
 
 c.execute('''
 	CREATE TABLE PRICE_COMPARATOR AS
-	SELECT A.TITLE AS TITLE, A.SKU AS SKU, A.CATEGORIES, A.PRICE AS LATEST_PRICE, B.PRICE AS OLD_PRICE,
+	SELECT
+	A.TITLE AS TITLE,
+	A.SKU AS SKU,
+	A.CATEGORIES,
+	A.PRICE AS LATEST_PRICE,
+	B.PRICE AS OLD_PRICE,
 	A.IMAGELINK AS IMAGE,
 	CASE WHEN A.PRICE != B.PRICE THEN 1 ELSE 0 END AS PRICE_CHANGE_FLAG
 	FROM RANKED_TABLE A, RANKED_TABLE B
