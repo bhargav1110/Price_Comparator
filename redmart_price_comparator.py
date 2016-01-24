@@ -4,6 +4,7 @@
 # 2015.1.24
 # Bhargav.V
 # Version 5
+# Scheduled to run weekly
 ##########################################################
 
 import json
