@@ -31,7 +31,7 @@ soupChr = str(soup)
 
 #---------------------------------------JSON File To be Parsed---------------------------------------
 
-#Parsing the JSON file
+#Extracting required information from the JSON file
 data = json.loads(soupChr)
 chk = data['products']
 dataForOneSC = []
